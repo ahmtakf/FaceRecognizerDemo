@@ -23,8 +23,13 @@ import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import static org.bytedeco.javacpp.opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE;
 
 public class FaceTestMain {
+
+    private static int width = 200;
+    private static int height = 200;
+    private static String trainingDir = "D:\\DEV\\HUAWEI\\FaceTest\\src\\main\\resources\\images";
+    private static String testDir = "D:\\DEV\\HUAWEI\\FaceTest\\src\\main\\resources\\test\\13.jpg";
+
     public static void main(String[] args) {
-        String trainingDir = "D:\\DEV\\HUAWEI\\FaceTest\\src\\main\\resources\\images";
         File root = new File(trainingDir);
 
         FilenameFilter imgFilter = new FilenameFilter() {
@@ -44,7 +49,7 @@ public class FaceTestMain {
                 e.printStackTrace();
             }
 
-            BufferedImage temp = resize(image, 200, 200);
+            BufferedImage temp = resize(image, width, height);
 
             try {
                 ImageIO.write(temp, FilenameUtils.getExtension(imageFiles[i].getAbsolutePath()), new File(imageFiles[i].getAbsolutePath()));
@@ -62,11 +67,11 @@ public class FaceTestMain {
 
         int counter = 0;
 
-        for (File image : imageFiles) {
+        for (File image: imageFiles ) {
+
             Mat img = imread(image.getAbsolutePath(), CV_LOAD_IMAGE_GRAYSCALE);
 
-            int label = Integer.parseInt(image.getName().split("\\.")[0]);
-
+            int label = Integer.parseInt(image.getName().split("_")[0]);
             images.put(counter, img);
 
             System.out.println("Image : " + img.toString());
@@ -78,15 +83,35 @@ public class FaceTestMain {
             counter++;
         }
 
-        FaceRecognizer faceRecognizer = FisherFaceRecognizer.create();
-        // FaceRecognizer faceRecognizer = EigenFaceRecognizer.create();
-        // FaceRecognizer faceRecognizer = LBPHFaceRecognizer.create();
+        //Three different algorithms
+        //FaceRecognizer faceRecognizer = FisherFaceRecognizer.create();
+        //FaceRecognizer faceRecognizer = EigenFaceRecognizer.create();
+        FaceRecognizer faceRecognizer = LBPHFaceRecognizer.create();
 
         faceRecognizer.train(images, labels);
 
         System.out.println("Training is done!");
 
-        Mat testImage = imread("D:\\DEV\\HUAWEI\\FaceTest\\src\\main\\resources\\images\\5.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+        faceRecognizer.save(trainingDir + "\\TrainingFiles.xml");
+
+        File testFile = new File(testDir);
+
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(testFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        BufferedImage temp = resize(image, width, height);
+
+        try {
+            ImageIO.write(temp, FilenameUtils.getExtension(testFile.getAbsolutePath()), new File(testFile.getAbsolutePath()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Mat testImage = imread(testDir, CV_LOAD_IMAGE_GRAYSCALE);
 
         IntPointer label = new IntPointer(1);
         DoublePointer confidence = new DoublePointer(1);
