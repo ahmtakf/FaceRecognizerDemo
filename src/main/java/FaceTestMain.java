@@ -30,6 +30,8 @@ public class FaceTestMain {
     private static String testDir = "D:\\DEV\\HUAWEI\\FaceTest\\src\\main\\resources\\test\\13.jpg";
 
     public static void main(String[] args) {
+        long startTime = System.nanoTime();
+
         File root = new File(trainingDir);
 
         FilenameFilter imgFilter = new FilenameFilter() {
@@ -65,6 +67,11 @@ public class FaceTestMain {
         Mat labels = new Mat(imageFiles.length, 1, CV_32SC1);
         IntBuffer labelsBuf = labels.createBuffer();
 
+        //Three different algorithms
+        //FaceRecognizer faceRecognizer = FisherFaceRecognizer.create();
+        //FaceRecognizer faceRecognizer = EigenFaceRecognizer.create();
+        FaceRecognizer faceRecognizer = LBPHFaceRecognizer.create();
+
         int counter = 0;
 
         for (File image: imageFiles ) {
@@ -82,17 +89,10 @@ public class FaceTestMain {
 
             counter++;
         }
-
-        //Three different algorithms
-        //FaceRecognizer faceRecognizer = FisherFaceRecognizer.create();
-        //FaceRecognizer faceRecognizer = EigenFaceRecognizer.create();
-        FaceRecognizer faceRecognizer = LBPHFaceRecognizer.create();
-
         faceRecognizer.train(images, labels);
 
         System.out.println("Training is done!");
 
-        faceRecognizer.save(trainingDir + "\\TrainingFiles.xml");
 
         File testFile = new File(testDir);
 
@@ -119,6 +119,10 @@ public class FaceTestMain {
         int predictedLabel = label.get(0);
 
         System.out.println("Predicted label: " + predictedLabel);
+
+        long endTime = System.nanoTime();
+        System.out.println("Execution time: " + (endTime - startTime));
+
     }
 
     public static BufferedImage resize(final Image image, int width, int height) {
